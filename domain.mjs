@@ -19,3 +19,26 @@ export function confirmPayment(bill, actor, person, accepted, reason='') {
   if(!accepted && !reason.trim()) throw new Error('请填写退回原因');
   p.status = accepted ? 'paid' : 'returned'; p.reason = reason; p.confirmedAt = new Date().toISOString();
 }
+
+export function unpaidBills(bills, actor) {
+  return bills.filter(b => b.payments[actor] && b.payments[actor].status !== 'paid');
+}
+
+export function monthlyBills(bills, month) {
+  return bills.filter(b => b.created?.slice(0, 7) === month);
+}
+
+export function conversationKey(actor, peer) {
+  return peer === 'group' ? 'group' : [actor, peer].sort().join('|');
+}
+
+export function visibleMessages(messages, actor, peer) {
+  const room = conversationKey(actor, peer);
+  return messages.filter(m => m.room === room &&
+    (room === 'group' || room.split('|').includes(actor)));
+}
+
+export function unreadMessages(messages, actor) {
+  return messages.filter(m => m.sender !== actor && !m.readBy.includes(actor) &&
+    (m.room === 'group' || m.room.split('|').includes(actor)));
+}
